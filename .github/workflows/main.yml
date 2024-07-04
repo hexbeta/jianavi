@@ -2,7 +2,7 @@ name: Upload to UpYun
 
 on:
   push:
-    branches: [ master ]  # 触发条件：当推送到 main 分支时
+    branches: [ master ]  # 触发条件：当推送到 master 分支时
 
 jobs:
   upload:
@@ -11,23 +11,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Download and extract UPX
+      - name: Download and install UPX
         run: |
-          cd ..
-          wget https://collection.b0.upaiyun.com/softwares/upx/upx_0.4.6_linux_amd64.tar.gz
-          tar -xzf upx_0.4.6_linux_amd64.tar.gz
-          chmod +x ./upx
-          cd $GITHUB_WORKSPACE
+          sudo wget https://collection.b0.upaiyun.com/softwares/upx/upx_0.4.6_linux_amd64.tar.gz -O /tmp/upx.tar.gz
+          sudo tar -xzf /tmp/upx.tar.gz -C /tmp
+          sudo mv /tmp/upx /usr/bin/
+          sudo chmod +x /usr/bin/upx
 
       - name: Login to UPX
         env:
           UPX_SERVICE: ${{ secrets.UPX_SERVICE }}
           UPX_USERNAME: ${{ secrets.UPX_USERNAME }}
           UPX_PASSWORD: ${{ secrets.UPX_PASSWORD }}
-        run: ../upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
+        run: upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
 
       - name: Remove existing directory
-        run: ../upx rm -d /tmp/jianavi3
+        run: upx rm -d /tmp/jianavi4
 
       - name: Upload repository to UpYun
-        run: ../upx put . /tmp/jianavi3
+        run: upx put . /tmp/jianavi4
