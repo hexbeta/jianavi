@@ -2,7 +2,7 @@ name: Upload to UpYun
 
 on:
   push:
-    branches: [ main ]  # 触发条件：当推送到 main 分支时
+    branches: [ master ]  # 触发条件：当推送到 main 分支时
 
 jobs:
   upload:
