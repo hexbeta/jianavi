@@ -30,3 +30,6 @@ jobs:
 
       - name: Upload repository to UpYun
         run: upx put . /
+
+      - name: Refresh CDN cache
+        run: upx purge ${{ secrets.UPX_FLUSH_URL }}
