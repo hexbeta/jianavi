@@ -1,0 +1,27 @@
+name: Upload to UpYun
+
+on:
+  push:
+    branches: [ main ]  # 触发条件：当推送到 main 分支时
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Download and extract UPX
+      run: |
+        wget https://collection.b0.upaiyun.com/softwares/upx/upx_0.4.6_linux_amd64.tar.gz
+        tar -xzf upx_0.4.6_linux_amd64.tar.gz
+        chmod +x ./upx
+
+    - name: Login to UPX
+      run: ./upx login service_one jack 86Aaj8CDG5HL1AY3NZt9PPoZUOL7sBg3
+
+    - name: Remove existing directory
+      run: ./upx rm -d /tmp/jianavi
+
+    - name: Upload repository to UpYun
+      run: ./upx put . /tmp/jianavi
