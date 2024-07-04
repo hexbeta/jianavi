@@ -8,24 +8,26 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Download and extract UPX
-      run: |
-        wget https://collection.b0.upaiyun.com/softwares/upx/upx_0.4.6_linux_amd64.tar.gz
-        tar -xzf upx_0.4.6_linux_amd64.tar.gz
-        chmod +x ./upx
+      - name: Download and extract UPX
+        run: |
+          cd ..
+          wget https://collection.b0.upaiyun.com/softwares/upx/upx_0.4.6_linux_amd64.tar.gz
+          tar -xzf upx_0.4.6_linux_amd64.tar.gz
+          chmod +x ./upx
+          cd $GITHUB_WORKSPACE
 
-    - name: Login to UPX
-      env:
-        UPX_SERVICE: ${{ secrets.UPX_SERVICE }}
-        UPX_USERNAME: ${{ secrets.UPX_USERNAME }}
-        UPX_PASSWORD: ${{ secrets.UPX_PASSWORD }}
-      run: ./upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
+      - name: Login to UPX
+        env:
+          UPX_SERVICE: ${{ secrets.UPX_SERVICE }}
+          UPX_USERNAME: ${{ secrets.UPX_USERNAME }}
+          UPX_PASSWORD: ${{ secrets.UPX_PASSWORD }}
+        run: ../upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
 
-    - name: Remove existing directory
-      run: ./upx rm -d /tmp/jianavi
+      - name: Remove existing directory
+        run: ../upx rm -d /tmp/jianavi3
 
-    - name: Upload repository to UpYun
-      run: ./upx put . /tmp/jianavi
+      - name: Upload repository to UpYun
+        run: ../upx put . /tmp/jianavi3
