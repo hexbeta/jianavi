@@ -18,7 +18,11 @@ jobs:
         chmod +x ./upx
 
     - name: Login to UPX
-      run: ./upx login service_one jack 86Aaj8CDG5HL1AY3NZt9PPoZUOL7sBg3
+      env:
+        UPX_SERVICE: ${{ secrets.UPX_SERVICE }}
+        UPX_USERNAME: ${{ secrets.UPX_USERNAME }}
+        UPX_PASSWORD: ${{ secrets.UPX_PASSWORD }}
+      run: ./upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
 
     - name: Remove existing directory
       run: ./upx rm -d /tmp/jianavi
