@@ -25,8 +25,8 @@ jobs:
           UPX_PASSWORD: ${{ secrets.UPX_PASSWORD }}
         run: upx login $UPX_SERVICE $UPX_USERNAME $UPX_PASSWORD
 
-      - name: Remove existing directory
-        run: upx rm -d .
+#      - name: Remove existing directory
+#        run: upx rm -d .
 
       - name: Upload repository to UpYun
         run: upx put . /
