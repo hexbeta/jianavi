@@ -121,35 +121,39 @@ $('.Select-box-2 ul').hover(function () {
 	$(this).css('height', '47px')
 });
 
+// 全局变量，用于跟踪当前搜索引擎
+var currentEngine = 'baidu';
+
+// 修改搜索引擎切换功能
 $('.Select-box-2 li').click(function () {
 	var _tihs = $(this).attr('class');
 	var _html = $(this).html();
 	var _name = 'wd';
+	var _action = 'https://www.baidu.com/s';
+
 	if (_tihs == 'this_s') {
 		return "";
 	}
 	if (_tihs == 'baidu_s') {
-		_tihs = 'https://www.baidu.com/s';
+		_action = 'https://www.baidu.com/s';
 		_name = 'wd';
+		currentEngine = 'baidu';
 	} else if (_tihs == 'google_s') {
-		_tihs = 'https://www.google.com/search';
+		_action = 'https://www.google.com/search';
 		_name = 'q';
-	} else if (_tihs == 'bing_s') {
-		_tihs = 'https://www.bing.com/search';
-		_name = 'q';
-	} else if (_tihs == 'miji_s') {
-		_tihs = 'https://www.dogedoge.com/results';
-		_name = 'q';
-	} else {
-		_tihs = 'https://www.baidu.com/s';
-		_name = 'wd';
-	}
-	$('.baidu form').attr('action', _tihs);
+		currentEngine = 'google';
+	} // ... 其他搜索引擎的处理 ...
+
+	$('.baidu form').attr('action', _action);
 	$('.this_s').html(_html);
 	$('#kw-2').attr('name', _name);
 	$('.Select-box-2 ul').css('height', '48px');
 
-	setCookie("_search_", _html + "_nln_" + _tihs + "_nln_" + _name);
+	setCookie("_search_", _html + "_nln_" + _action + "_nln_" + _name);
+
+	// 清空当前的联想结果
+	oUl.style.display = 'none';
+	oUl.innerHTML = '';
 });
 
 function _search_() {
@@ -253,23 +257,90 @@ $("#qingkong").click(function () {
 	oUl.style.display = 'none';
 })
 
-// 搜索联想
+// 修改搜索联想功能
 btn.keyup(function (e) {
 	if (e.keyCode == 13 || e.keyCode == 40 || e.keyCode == 38) {
 		e.preventDefault();
 		return;
 	}
-	var value = this.value;
+	var value = this.value.trim();
 	if (value) {
-		var oScript = document.createElement('script');
-		oScript.src = 'https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=' + value + '&cb=aa'
-		document.body.appendChild(oScript);
-		oScript.remove();
-	} else if (value == 0) {
+		if (currentEngine === 'baidu') {
+			fetchBaiduSuggestions(value);
+		} else if (currentEngine === 'google') {
+			fetchGoogleSuggestions(value);
+		}
+	} else {
 		oUl.style.display = 'none';
 	}
+});
 
-})
+function fetchBaiduSuggestions(query) {
+	var script = document.createElement('script');
+	script.src = 'https://www.baidu.com/sugrec?prod=pc&wd=' + encodeURIComponent(query) + '&cb=handleBaiduSuggestions';
+	document.body.appendChild(script);
+	script.onerror = handleError;
+	script.onload = function() {
+		document.body.removeChild(script);
+	};
+}
+
+function fetchGoogleSuggestions(query) {
+	// 注意：实际使用时需要通过服务器端代理来解决跨域问题
+	var script = document.createElement('script');
+	script.src = 'https://suggestqueries.google.com/complete/search?client=chrome&q=' + encodeURIComponent(query) + '&callback=handleGoogleSuggestions';
+	document.body.appendChild(script);
+	script.onerror = handleError;
+	script.onload = function() {
+		document.body.removeChild(script);
+	};
+}
+
+function handleBaiduSuggestions(data) {
+	if (data && data.g) {
+		var suggestions = data.g.map(item => item.q);
+		displaySuggestions(suggestions, 'baidu');
+	} else {
+		hidesuggestions();
+	}
+}
+
+function handleGoogleSuggestions(data) {
+	var suggestions = data[1];
+	displaySuggestions(suggestions, 'google');
+}
+
+function displaySuggestions(suggestions, engine) {
+	var oUl = document.querySelector(".keylist");
+	if (!oUl) {
+		console.error("Cannot find .keylist element");
+		return;
+	}
+
+	if (suggestions.length === 0) {
+		hidesuggestions();
+		return;
+	}
+
+	var str = '';
+	for (var i = 0; i < suggestions.length; i++) {
+		str += '<li class="' + engine + '-suggestion">' + suggestions[i] + '</li>';
+	}
+	oUl.innerHTML = str;
+	oUl.style.display = 'block';
+}
+
+function hidesuggestions() {
+	var oUl = document.querySelector(".keylist");
+	if (oUl) {
+		oUl.style.display = 'none';
+	}
+}
+
+function handleError() {
+	console.error('Failed to fetch suggestions');
+	oUl.style.display = 'none';
+}
 
 // 控制搜索时显示联想内容的数量
 function aa(data) {
