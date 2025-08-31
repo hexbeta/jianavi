@@ -1,11 +1,36 @@
 @media screen and (max-width:768px) {
 	*{
 		margin:0;padding: 0;
+		-webkit-box-sizing: border-box;
+		box-sizing: border-box;
 	}
 
 	html,body{
-		height: 100%;
+		height: auto;
+		min-height: 100vh;
 		width: 100%;
+		overflow-x: hidden;
+		position: relative;
+		-ms-overflow-style: none;
+		scrollbar-width: none;
+	}
+	
+	/* iPhone Safari 专用背景滚动修复 */
+	body {
+		background-image: url(https://api.timelessq.com/bing/random) !important;
+		background-size: cover !important;
+		background-position: center center !important;
+		background-repeat: no-repeat !important;
+		/* 关键：在iPhone Safari中不使用background-attachment */
+		background-attachment: initial !important;
+	}
+	
+	/* WebKit 浏览器隐藏滚动条 */
+	html::-webkit-scrollbar,
+	body::-webkit-scrollbar {
+		display: none;
+		width: 0;
+		height: 0;
 	}
 	/*内容样式，使用flex布局*/
 	.content{
@@ -93,9 +118,12 @@
 		display: block;
 		text-align: center;
 		position: relative;
-		padding-top: 10px;
+		padding-top: 20px;
+		padding-bottom: 20px;
 		bottom: 0;
-		color:white;
+		color: white;
+		width: 100%;
+		box-sizing: border-box;
 	}
 
 	input[type="button"], input[type="submit"], input[type="reset"] {
@@ -105,5 +133,67 @@
 	}
 
 	textarea {  -webkit-appearance: none;}  
+	
+	/* iPhone Safari 处理 */
+	@supports (-webkit-touch-callout: none) {
+		html, body {
+			height: auto;
+			min-height: 100vh;
+			min-height: -webkit-fill-available;
+			width: 100vw;
+			overflow-x: hidden;
+			overflow-y: auto;
+		}
+		
+		html::-webkit-scrollbar,
+		body::-webkit-scrollbar {
+			display: none !important;
+			width: 0 !important;
+			height: 0 !important;
+			background: transparent !important;
+		}
+		
+		body {
+			margin-right: 0 !important;
+			padding-right: 0 !important;
+		}
+		
+		.body, .content {
+			overflow-x: hidden;
+			/* -webkit-overflow-scrolling: touch; */
+			height: auto;
+		}
+	}
+	
+	/* 针对 iPhone 刘海屏的安全区域适配 */
+	body {
+		padding-left: env(safe-area-inset-left);
+		padding-right: env(safe-area-inset-right);
+		padding-left: constant(safe-area-inset-left);
+		padding-right: constant(safe-area-inset-right);
+	}
+
+	html, body {
+		overflow-y: auto;
+		overflow-x: hidden;
+		-webkit-overflow-scrolling: touch;
+		/* 防止反弹效果 */
+		overscroll-behavior: none;
+	}
+	
+	.body, .content {
+		overflow-x: hidden;
+		height: auto;
+		min-height: auto;
+	}
+
+	a, button, input, textarea {
+		-webkit-user-select: auto;
+		-moz-user-select: auto;
+		-ms-user-select: auto;
+		user-select: auto;
+		-webkit-touch-callout: default;
+		-webkit-tap-highlight-color: transparent;
+	}
 	
 }

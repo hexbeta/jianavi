@@ -142,7 +142,19 @@ $('.Select-box-2 li').click(function () {
 		_action = 'https://www.google.com/search';
 		_name = 'q';
 		currentEngine = 'google';
-	} // ... 其他搜索引擎的处理 ...
+	} else if (_tihs == 'bing_s') {
+		_action = 'https://www.bing.com/search';
+		_name = 'q';
+		currentEngine = 'bing';
+	} else if (_tihs == 'duckduckgo_s') {
+		_action = 'https://duckduckgo.com/';
+		_name = 'q';
+		currentEngine = 'duckduckgo';
+	} else if (_tihs == 'yahoo_s') {
+		_action = 'https://search.yahoo.com/search';
+		_name = 'p';
+		currentEngine = 'yahoo';
+	}
 
 	$('.baidu form').attr('action', _action);
 	$('.this_s').html(_html);
@@ -155,6 +167,28 @@ $('.Select-box-2 li').click(function () {
 	oUl.style.display = 'none';
 	oUl.innerHTML = '';
 });
+
+// Cookie操作函数
+function setCookie(name, value, days) {
+	var expires = "";
+	if (days) {
+		var date = new Date();
+		date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+		expires = "; expires=" + date.toUTCString();
+	}
+	document.cookie = name + "=" + (value || "") + expires + "; path=/";
+}
+
+function getCookie(name) {
+	var nameEQ = name + "=";
+	var ca = document.cookie.split(';');
+	for (var i = 0; i < ca.length; i++) {
+		var c = ca[i];
+		while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+	}
+	return null;
+}
 
 function _search_() {
 	var aCookie = document.cookie.split(";");
@@ -174,10 +208,21 @@ function _search_() {
 			$('.this_s').html(link[0]);
 			$('#kw-2').attr('name', link[2]);
 			$('.Select-box-2 ul').css('height', '48px');
+
+			// 根据保存的搜索引擎设置currentEngine
+			if (link[1].indexOf('google.com') > -1) {
+				currentEngine = 'google';
+			} else if (link[1].indexOf('bing.com') > -1) {
+				currentEngine = 'bing';
+			} else if (link[1].indexOf('duckduckgo.com') > -1) {
+				currentEngine = 'duckduckgo';
+			} else if (link[1].indexOf('yahoo.com') > -1) {
+				currentEngine = 'yahoo';
+			} else {
+				currentEngine = 'baidu';
+			}
 		}
-
 	}
-
 }
 _search_();
 
@@ -192,7 +237,7 @@ function cls() {
 	for (var i = 0; i < t.length; i++) {
 		if (t[i].type == 'text') {
 			++sum;
-			t[i].value = "";//清空 
+			t[i].value = "";//清空
 		}
 	}
 }
@@ -269,46 +314,203 @@ btn.keyup(function (e) {
 			fetchBaiduSuggestions(value);
 		} else if (currentEngine === 'google') {
 			fetchGoogleSuggestions(value);
+		} else if (currentEngine === 'bing') {
+			fetchBingSuggestions(value);
+		} else if (currentEngine === 'duckduckgo') {
+			fetchDuckDuckGoSuggestions(value);
+		} else if (currentEngine === 'yahoo') {
+			fetchYahooSuggestions(value);
+		} else {
+			fetchBaiduSuggestions(value);
 		}
 	} else {
+
 		oUl.style.display = 'none';
 	}
 });
 
 function fetchBaiduSuggestions(query) {
+	// 使用更新的百度联想API
 	var script = document.createElement('script');
-	script.src = 'https://www.baidu.com/sugrec?prod=pc&wd=' + encodeURIComponent(query) + '&cb=handleBaiduSuggestions';
+	script.src = 'https://suggestion.baidu.com/su?wd=' + encodeURIComponent(query) + '&p=3&cb=handleBaiduSuggestions&json=1&pwd=' + encodeURIComponent(query);
 	document.body.appendChild(script);
-	script.onerror = handleError;
+	script.onerror = function() {
+		// 如果新接口失败，尝试旧接口
+		var fallbackScript = document.createElement('script');
+		fallbackScript.src = 'https://www.baidu.com/sugrec?prod=pc&wd=' + encodeURIComponent(query) + '&cb=handleBaiduSuggestionsFallback';
+		document.body.appendChild(fallbackScript);
+		fallbackScript.onerror = handleError;
+		fallbackScript.onload = function() {
+			document.body.removeChild(fallbackScript);
+		};
+		document.body.removeChild(script);
+	};
 	script.onload = function() {
 		document.body.removeChild(script);
 	};
 }
 
 function fetchGoogleSuggestions(query) {
-	// 注意：实际使用时需要通过服务器端代理来解决跨域问题
+	// 使用更稳定的谷歌联想API
 	var script = document.createElement('script');
-	script.src = 'https://suggestqueries.google.com/complete/search?client=chrome&q=' + encodeURIComponent(query) + '&callback=handleGoogleSuggestions';
+	script.src = 'https://clients1.google.com/complete/search?client=youtube&ds=yt&q=' + encodeURIComponent(query) + '&callback=handleGoogleSuggestions';
 	document.body.appendChild(script);
-	script.onerror = handleError;
+	script.onerror = function() {
+		// 如果失败，尝试备用接口
+		var fallbackScript = document.createElement('script');
+		fallbackScript.src = 'https://suggestqueries.google.com/complete/search?client=chrome&q=' + encodeURIComponent(query) + '&callback=handleGoogleSuggestions';
+		document.body.appendChild(fallbackScript);
+		fallbackScript.onerror = handleError;
+		fallbackScript.onload = function() {
+			document.body.removeChild(fallbackScript);
+		};
+		document.body.removeChild(script);
+	};
 	script.onload = function() {
 		document.body.removeChild(script);
 	};
 }
 
-function handleBaiduSuggestions(data) {
+function fetchBingSuggestions(query) {
+	// 必应联想API
+	var script = document.createElement('script');
+	script.src = 'https://api.bing.com/osjson.aspx?query=' + encodeURIComponent(query) + '&JsonType=callback&JsonCallback=handleBingSuggestions';
+	document.body.appendChild(script);
+	script.onerror = function() {
+		// 如果必应失败，回退到百度联想
+		console.warn('Bing suggestions failed, falling back to Baidu');
+		fetchBaiduSuggestions(query);
+		document.body.removeChild(script);
+	};
+	script.onload = function() {
+		document.body.removeChild(script);
+	};
+}
+
+function fetchDuckDuckGoSuggestions(query) {
+	// DuckDuckGo联想API
+	var script = document.createElement('script');
+	var url = 'https://duckduckgo.com/ac/?q=' + encodeURIComponent(query) + '&callback=handleDuckDuckGoSuggestions';
+	script.src = url;
+	document.body.appendChild(script);
+	script.onerror = function(e) {
+		// 如果DuckDuckGo失败，回退到百度联想
+		console.error('DuckDuckGo script onerror event fired.', e);
+		console.warn('DuckDuckGo suggestions failed, falling back to Baidu');
+		fetchBaiduSuggestions(query);
+		document.body.removeChild(script);
+	};
+	script.onload = function() {
+
+		// Do not remove the script tag here to avoid race conditions.
+	};
+}
+
+function fetchYahooSuggestions(query) {
+	// 雅虎联想API
+	var script = document.createElement('script');
+	script.src = 'https://search.yahoo.com/sugg/chrome?output=fxjson&command=' + encodeURIComponent(query) + '&callback=handleYahooSuggestions';
+	document.body.appendChild(script);
+	script.onerror = function() {
+		// 如果雅虎失败，回退到百度联想
+		console.warn('Yahoo suggestions failed, falling back to Baidu');
+		fetchBaiduSuggestions(query);
+		document.body.removeChild(script);
+	};
+	script.onload = function() {
+		document.body.removeChild(script);
+	};
+}
+
+// 确保所有回调函数在全局作用域
+window.handleBaiduSuggestions = function(data) {
+	if (data && data.s) {
+		// 新的百度API格式
+		displaySuggestions(data.s, 'baidu');
+	} else if (data && data.g) {
+		// 旧的百度API格式
+		var suggestions = data.g.map(item => item.q);
+		displaySuggestions(suggestions, 'baidu');
+	} else {
+		hidesuggestions();
+	}
+};
+
+window.handleBaiduSuggestionsFallback = function(data) {
+	// 处理旧版百度API的回调
 	if (data && data.g) {
 		var suggestions = data.g.map(item => item.q);
 		displaySuggestions(suggestions, 'baidu');
 	} else {
 		hidesuggestions();
 	}
-}
+};
 
-function handleGoogleSuggestions(data) {
-	var suggestions = data[1];
-	displaySuggestions(suggestions, 'google');
-}
+window.handleGoogleSuggestions = function(data) {
+	if (data && data[1] && Array.isArray(data[1])) {
+		// Google返回的数据格式：["查询词", [["联想词1", 0, [数据]], ["联想词2", 0, [数据]], ...], {...}]
+		// 需要提取data[1]中每个子数组的第一个元素
+		var suggestions = [];
+		for (var i = 0; i < data[1].length; i++) {
+			if (Array.isArray(data[1][i]) && data[1][i][0]) {
+				suggestions.push(data[1][i][0]);
+			}
+		}
+
+		if (suggestions.length > 0) {
+			displaySuggestions(suggestions, 'google');
+		} else {
+			hidesuggestions();
+		}
+	} else {
+		hidesuggestions();
+	}
+};
+
+window.handleBingSuggestions = function(data) {
+	if (data && data[1] && Array.isArray(data[1])) {
+		var suggestions = data[1];
+		displaySuggestions(suggestions, 'bing');
+	} else {
+		hidesuggestions();
+	}
+};
+
+// 确保DuckDuckGo回调函数在全局作用域
+window.handleDuckDuckGoSuggestions = function(data) {
+	if (Array.isArray(data)) {
+		// 转换成纯字符串数组
+		var suggestions = data
+			.filter(function(item) { return item && item.phrase; })
+			.map(function(item) { return item.phrase; });
+
+
+		if (suggestions.length > 0) {
+			displaySuggestions(suggestions, 'duckduckgo');
+		} else {
+			hidesuggestions();
+		}
+	} else {
+		hidesuggestions();
+	}
+};
+
+// 确保雅虎回调函数在全局作用域
+window.handleYahooSuggestions = function(data) {
+	if (data && data[1] && Array.isArray(data[1])) {
+		// 雅虎可能使用类似谷歌的格式
+		var suggestions = data[1];
+		displaySuggestions(suggestions, 'yahoo');
+	} else if (data && data.r && Array.isArray(data.r)) {
+		// 或者使用 data.r 格式
+		var suggestions = data.r.map(function(item) {
+			return item.k || item;
+		});
+		displaySuggestions(suggestions, 'yahoo');
+	} else {
+		hidesuggestions();
+	}
+};
 
 function displaySuggestions(suggestions, engine) {
 	var oUl = document.querySelector(".keylist");
@@ -317,17 +519,29 @@ function displaySuggestions(suggestions, engine) {
 		return;
 	}
 
-	if (suggestions.length === 0) {
+	if (!suggestions || suggestions.length === 0) {
 		hidesuggestions();
 		return;
 	}
 
 	var str = '';
-	for (var i = 0; i < suggestions.length; i++) {
-		str += '<li class="' + engine + '-suggestion">' + suggestions[i] + '</li>';
+	var maxResults = Math.min(suggestions.length, 8); // 最多显示8个结果
+	for (var i = 0; i < maxResults; i++) {
+		var suggestion = suggestions[i];
+
+		if (suggestion && suggestion.trim()) {
+			var listItem = '<li class="' + engine + '-suggestion">' + suggestion.trim() + '</li>';
+
+			str += listItem;
+		}
 	}
-	oUl.innerHTML = str;
-	oUl.style.display = 'block';
+	if (str) {
+		oUl.innerHTML = str;
+		oUl.style.display = 'block';
+	} else {
+		hidesuggestions();
+	}
+
 }
 
 function hidesuggestions() {
@@ -339,24 +553,7 @@ function hidesuggestions() {
 
 function handleError() {
 	console.error('Failed to fetch suggestions');
-	oUl.style.display = 'none';
-}
-
-// 控制搜索时显示联想内容的数量
-function aa(data) {
-	//console.log(data);
-	oUl.style.display = 'block';
-	var list = data.s;
-	var str = '';
-
-	for (var i = 0; i < list.length; i++) {
-		// 最多显示8行
-		if (i < 8) {
-			str += '<li>' + list[i] + '</li>';
-		}
-
-	}
-	oUl.innerHTML = str;
+	hidesuggestions();
 }
 
 $(".keylist").on('click', 'li', function () {
@@ -373,7 +570,7 @@ $(document).keydown(function (e) {
 		btn.val($(".keylist li.active").html().trim());
 		$('#su-2').click();
 		oUl.style.display = 'none';
-		//alert('你按下了Enter'); 
+		//alert('你按下了Enter');
 	} else if (e && e.keyCode == 40 && oUl.style.display == 'block') { //下
 		//active
 		if ($(".keylist li.active").length > 0) {
