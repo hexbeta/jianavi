@@ -444,3 +444,144 @@ body, ul, li, h1, h2, h3, h4, h5, h6, p, form, dl, dt, dd {
 	display: block;
 }
 
+/* 文件夹链接样式 */
+.folder-link {
+	position: relative;
+}
+
+.folder-link::after {
+	content: "📁";
+	position: absolute;
+	right: 8px;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 12px;
+	opacity: 0.7;
+}
+
+/* 文件夹浮窗样式 */
+.folder-popup {
+	display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.6);
+	z-index: 10000;
+	backdrop-filter: blur(3px);
+}
+
+.folder-popup-content {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	background: rgba(0, 0, 0, 0.9);
+	border: 2px solid rgba(255, 255, 255, 0.2);
+	border-radius: 12px;
+	padding: 20px;
+	max-width: 600px;
+	width: 90%;
+	max-height: 80vh;
+	overflow-y: auto;
+	animation: popupFadeIn 0.3s ease-out;
+}
+
+.folder-popup-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 20px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.folder-title {
+	color: #ffffff;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+.folder-close {
+	color: #ffffff;
+	font-size: 24px;
+	cursor: pointer;
+	transition: all 0.2s;
+	width: 30px;
+	height: 30px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+}
+
+.folder-close:hover {
+	background: rgba(255, 255, 255, 0.1);
+	transform: scale(1.1);
+}
+
+.folder-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 10px;
+}
+
+.folder-item {
+	display: block;
+	background: rgba(255, 255, 255, 0.1);
+	color: #FFF;
+	font-size: 13px;
+	text-align: center;
+	line-height: 35px;
+	padding: 4px 8px;
+	border-radius: 6px;
+	transition: all 0.2s;
+	text-decoration: none;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.folder-item:hover {
+	background: rgba(255, 255, 255, 0.2);
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	font-weight: bold;
+}
+
+@keyframes popupFadeIn {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -50%) scale(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+	.folder-popup-content {
+		width: 95%;
+		padding: 15px;
+		max-height: 85vh;
+	}
+	
+	.folder-grid {
+		grid-template-columns: repeat(2, 1fr);
+		gap: 8px;
+	}
+	
+	.folder-item {
+		font-size: 12px;
+		padding: 6px 4px;
+	}
+}
+
+/* 超小屏幕适配 */
+@media screen and (max-width: 480px) {
+	.folder-grid {
+		grid-template-columns: repeat(1, 1fr);
+	}
+}
+
